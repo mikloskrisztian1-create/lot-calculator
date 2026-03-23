@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forex LOT Calculator</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0a0e17;
+    color: #e1e5ee;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 480px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 600;
+    color: #00d4aa;
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: #5a6a8a;
+    margin-bottom: 30px;
+}
+
+.card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+}
+
+.card-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #5a6a8a;
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+label {
+    display: block;
+    font-size: 12px;
+    color: #8892a8;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+select, input[type="number"] {
+    width: 100%;
+    padding: 12px 14px;
+    background: #0a0e17;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    color: #e1e5ee;
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+select:focus, input[type="number"]:focus {
+    border-color: #00d4aa;
+}
+
+select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235a6a8a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+}
+
+input[type="number"]::-webkit-inner-spin-button {
+    opacity: 0.5;
+}
+
+/* Results */
+.results {
+    display: none;
+}
+
+.results.visible {
+    display: block;
+}
+
+.result-main {
+    text-align: center;
+    padding: 20px 0;
+    border-bottom: 1px solid #1e293b;
+    margin-bottom: 16px;
+}
+
+.result-main .lot-value {
+    font-size: 42px;
+    font-weight: 700;
+    color: #00d4aa;
+    line-height: 1;
+}
+
+.result-main .lot-label {
+    font-size: 13px;
+    color: #5a6a8a;
+    margin-top: 6px;
+}
+
+.result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.result-item {
+    background: #0a0e17;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+}
+
+.result-item .value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e1e5ee;
+}
+
+.result-item .label {
+    font-size: 11px;
+    color: #5a6a8a;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.result-item.highlight .value {
+    color: #f59e0b;
+}
+
+/* Account info bar */
+.account-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    font-size: 13px;
+}
+
+.account-bar .item {
+    text-align: center;
+}
+
+.account-bar .item .val {
+    font-weight: 600;
+    color: #00d4aa;
+}
+
+.account-bar .item .lbl {
+    font-size: 10px;
+    color: #5a6a8a;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.divider {
+    width: 1px;
+    height: 30px;
+    background: #1e293b;
+}
+
+/* Quick copy */
+.copy-btn {
+    display: inline-block;
+    margin-top: 12px;
+    width: 100%;
+    padding: 12px;
+    background: #00d4aa;
+    color: #0a0e17;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: inherit;
+}
+
+.copy-btn:hover {
+    background: #00b894;
+}
+
+.copy-btn.copied {
+    background: #f59e0b;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Pair groups in select */
+optgroup {
+    color: #5a6a8a;
+    font-size: 13px;
+}
+
+option {
+    color: #e1e5ee;
+    background: #0a0e17;
+    padding: 4px;
+}
+
+/* Rate status */
+.rate-status {
+    text-align: center;
+    font-size: 11px;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #111827;
+    border: 1px solid #1e293b;
+}
+
+.rate-status.loading {
+    color: #f59e0b;
+}
+
+.rate-status.ok {
+    color: #00d4aa;
+}
+
+.rate-status.error {
+    color: #ef4444;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>FOREX LOT CALCULATOR</h1>
+    <p class="subtitle">Position Size &bull; 1% Risk Management</p>
+
+    <div class="account-bar">
+        <div class="item">
+            <div class="val">$100,000</div>
+            <div class="lbl">Balance</div>
+        </div>
+        <div class="divider"></div>
+        <div class="item">
+            <div class="val">1%</div>
+            <div class="lbl">Risk</div>
+        </div>
+        <div class="divider"></div>
+        <div class="item">
+            <div class="val">$1,000</div>
+            <div class="lbl">Risk Amount</div>
+        </div>
+    </div>
+
+    <div class="rate-status loading" id="rateStatus">Árfolyamok betöltése...</div>
+
+    <div class="card">
+        <div class="card-title">Trade Setup</div>
+
+        <div class="form-group">
+            <label>Currency Pair</label>
+            <select id="pair" onchange="calculate()">
+                <optgroup label="AUD Pairs">
+                    <option value="AUDCAD">AUD/CAD</option>
+                    <option value="AUDCHF">AUD/CHF</option>
+                    <option value="AUDJPY">AUD/JPY</option>
+                    <option value="AUDNZD">AUD/NZD</option>
+                    <option value="AUDUSD">AUD/USD</option>
+                </optgroup>
+                <optgroup label="CAD Pairs">
+                    <option value="CADCHF">CAD/CHF</option>
+                    <option value="CADJPY">CAD/JPY</option>
+                </optgroup>
+                <optgroup label="CHF Pairs">
+                    <option value="CHFJPY">CHF/JPY</option>
+                </optgroup>
+                <optgroup label="EUR Pairs">
+                    <option value="EURAUD">EUR/AUD</option>
+                    <option value="EURCAD">EUR/CAD</option>
+                    <option value="EURCHF">EUR/CHF</option>
+                    <option value="EURGBP">EUR/GBP</option>
+                    <option value="EURJPY">EUR/JPY</option>
+                    <option value="EURNZD">EUR/NZD</option>
+                    <option value="EURUSD" selected>EUR/USD</option>
+                </optgroup>
+                <optgroup label="GBP Pairs">
+                    <option value="GBPAUD">GBP/AUD</option>
+                    <option value="GBPCAD">GBP/CAD</option>
+                    <option value="GBPCHF">GBP/CHF</option>
+                    <option value="GBPJPY">GBP/JPY</option>
+                    <option value="GBPNZD">GBP/NZD</option>
+                    <option value="GBPUSD">GBP/USD</option>
+                </optgroup>
+                <optgroup label="NZD Pairs">
+                    <option value="NZDCAD">NZD/CAD</option>
+                    <option value="NZDCHF">NZD/CHF</option>
+                    <option value="NZDJPY">NZD/JPY</option>
+                    <option value="NZDUSD">NZD/USD</option>
+                </optgroup>
+                <optgroup label="USD Pairs">
+                    <option value="USDCAD">USD/CAD</option>
+                    <option value="USDCHF">USD/CHF</option>
+                    <option value="USDJPY">USD/JPY</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Stop Loss (pips)</label>
+            <input type="number" id="stopLoss" placeholder="pl. 50" min="0.1" step="0.1" oninput="calculate()">
+        </div>
+    </div>
+
+    <div class="card results" id="results">
+        <div class="card-title">Position Size</div>
+
+        <div class="result-main">
+            <div class="lot-value" id="lotValue">—</div>
+            <div class="lot-label">Standard Lots</div>
+        </div>
+
+        <button class="copy-btn" onclick="copyLot()">
+            Copy Lot Size
+        </button>
+    </div>
+</div>
+
+<script>
+const ACCOUNT_BALANCE = 100000;
+const RISK_PERCENT = 0.01;
+const RISK_AMOUNT = ACCOUNT_BALANCE * RISK_PERCENT; // $1,000
+
+// Live rates from API (USD-based)
+// We need: how many units of X per 1 USD
+// And for XXX/USD pairs: how many USD per 1 XXX
+let rates = {};
+let ratesLoaded = false;
+
+async function fetchRates() {
+    const statusEl = document.getElementById('rateStatus');
+    try {
+        // Frankfurter API: free, no key, reliable
+        // Get USD rates for all needed quote currencies
+        const resp = await fetch('https://api.frankfurter.app/latest?from=USD&to=CAD,CHF,JPY,AUD,NZD,GBP,EUR');
+        const data = await resp.json();
+
+        // data.rates gives us: 1 USD = X units of currency
+        // e.g., { CAD: 1.37, CHF: 0.79, JPY: 158.8, AUD: 1.42, NZD: 1.71, GBP: 0.75, EUR: 0.87 }
+        rates = data.rates;
+        ratesLoaded = true;
+
+        const date = data.date;
+        statusEl.textContent = `Árfolyamok betöltve (${date})`;
+        statusEl.className = 'rate-status ok';
+
+        calculate();
+    } catch (err) {
+        statusEl.textContent = 'Árfolyam betöltés sikertelen — frissítsd az oldalt';
+        statusEl.className = 'rate-status error';
+        console.error('Rate fetch error:', err);
+    }
+}
+
+function getQuoteCurrency(pair) {
+    return pair.substring(3, 6);
+}
+
+function getPipValuePerLotInUSD(quoteCurrency) {
+    // Pip value per STANDARD LOT (100,000 units) in quote currency:
+    // Non-JPY: 0.0001 * 100,000 = 10 units of quote currency
+    // JPY:     0.01   * 100,000 = 1,000 units of JPY
+
+    if (quoteCurrency === 'USD') {
+        return 10; // already in USD
+    }
+
+    if (quoteCurrency === 'JPY') {
+        // 1000 JPY → USD: 1000 / USDJPY
+        return 1000 / rates.JPY;
+    }
+
+    // For CAD, CHF: rates[X] = how many X per 1 USD
+    // So to convert 10 X to USD: 10 / rates[X]
+    if (quoteCurrency === 'CAD') return 10 / rates.CAD;
+    if (quoteCurrency === 'CHF') return 10 / rates.CHF;
+
+    // For AUD, NZD, GBP: rates[X] = how many X per 1 USD
+    // So 1 X = 1/rates[X] USD
+    // 10 X = 10 / rates[X] USD
+    if (quoteCurrency === 'AUD') return 10 / rates.AUD;
+    if (quoteCurrency === 'NZD') return 10 / rates.NZD;
+    if (quoteCurrency === 'GBP') return 10 / rates.GBP;
+    if (quoteCurrency === 'EUR') return 10 / rates.EUR;
+
+    return null;
+}
+
+function calculate() {
+    const pair = document.getElementById('pair').value;
+    const quote = getQuoteCurrency(pair);
+    const stopLoss = parseFloat(document.getElementById('stopLoss').value);
+
+    const resultsDiv = document.getElementById('results');
+
+    if (!stopLoss || stopLoss <= 0) {
+        resultsDiv.classList.remove('visible');
+        return;
+    }
+
+    if (!ratesLoaded && quote !== 'USD') {
+        resultsDiv.classList.remove('visible');
+        return;
+    }
+
+    const pipValuePerLot = getPipValuePerLotInUSD(quote);
+    if (!pipValuePerLot) {
+        resultsDiv.classList.remove('visible');
+        return;
+    }
+
+    // Lot size = Risk Amount / (Stop Loss in pips × Pip Value per Lot)
+    const lotSize = RISK_AMOUNT / (stopLoss * pipValuePerLot);
+
+    document.getElementById('lotValue').textContent = lotSize.toFixed(2);
+
+    resultsDiv.classList.add('visible');
+}
+
+function copyLot() {
+    const lotText = document.getElementById('lotValue').textContent;
+    if (lotText === '—') return;
+
+    navigator.clipboard.writeText(lotText).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.textContent = 'Copy Lot Size';
+            btn.classList.remove('copied');
+        }, 1500);
+    });
+}
+
+// Init: fetch rates on page load
+fetchRates();
+</script>
+</body>
+</html>
